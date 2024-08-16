@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana-logging
+  namespace: efk
+  labels:
+    k8s-app: kibana-logging
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: kibana-logging
+  template:
+    metadata:
+      labels:
+        k8s-app: kibana-logging
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
+    spec:
+      containers:
+      - name: kibana-logging
+        image: docker.elastic.co/kibana/kibana-oss:7.3.2
+        resources:
+          limits:
+            memory: 500Mi
+            cpu: 1000Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        env:
+          - name: ELASTICSEARCH_HOSTS
+            value: http://elasticsearch-logging:9200
+          - name: SERVER_NAME
+            value: kibana-logging
+         # - name: SERVER_BASEPATH
+         #   value: /api/v1/namespaces/efk-aks/services/kibana-logging/proxy
+          - name: SERVER_REWRITEBASEPATH
+            value: "false"
+        ports:
+        - containerPort: 5601
+          name: ui
+          protocol: TCP
